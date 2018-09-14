@@ -24,52 +24,13 @@ Two new features are supported, one is Json config style, and the other is defer
 
 First, get the code from this repo. 
 
-```go get github.com/jeanphorn/log4go```
+```go get github.com/wrestle/log4go```
 
 Then import it to you project.
 
-```import log "github.com/jeanphorn/log4go"```
+```import log "github.com/wrestle/log4go"```
 
 
-## Examples
-
-The config file is optional, if you don't set the config file, it would use the default console config.
-
-Here it is a Json config example:
-
-```
-{
-    "console": {
-        "enable": true,		// wether output the log
-        "level": "FINE"		// log level: FINE, DEBUG, TRACE, INFO, WARNING,ERROR, CRITICAL
-    },  
-    "files": [{
-        "enable": true,
-        "level": "DEBUG",
-        "filename":"./test.log",
-        "category": "Test",			// different category log to different files
-        "pattern": "[%D %T] [%C] [%L] (%S) %M"		// log output formmat
-    },{ 
-        "enable": false,
-        "level": "DEBUG",
-        "filename":"rotate_test.log",
-        "category": "TestRotate",
-        "pattern": "[%D %T] [%C] [%L] (%S) %M",
-        "rotate": true,								// wether rotate the log
-        "maxsize": "500M",
-        "maxlines": "10K",
-        "daily": true
-    }], 
-    "sockets": [{
-        "enable": false,
-        "level": "DEBUG",
-        "category": "TestSocket",
-        "pattern": "[%D %T] [%C] [%L] (%S) %M",
-        "addr": "127.0.0.1:12124",
-        "protocol":"udp"
-    }]  
-}
-```
 
 Code example:
 
@@ -81,37 +42,20 @@ import (
 )
 
 func main() {
-	// load config file, it's optional
-	// or log.LoadConfiguration("./example.json", "json")
-	// config file could be json or xml
-	log.LoadConfiguration("./example.json")
-
-	log.LOGGER("Test").Info("category Test info test ...")
-	log.LOGGER("Test").Info("category Test info test message: %s", "new test msg")
-	log.LOGGER("Test").Debug("category Test debug test ...")
-
-	// Other category not exist, test
-	log.LOGGER("Other").Debug("category Other debug test ...")
-
-	// socket log test
-	log.LOGGER("TestSocket").Debug("category TestSocket debug test ...")
-
-	// original log4go test
+	// 默认使用 INFO 级别以上的日志
+	// 日志位置在 当前目录的上级中的 log 里
+	// e.g : 假设执行目录是 /data/code/test_program_dir/bin/exec_program_bin
+	// 那么必须有 /data/code/test_program_dir/log 目录
+	// 日志会打在这文件夹里面，文件名为 /data/code/test_program_dir/log/exec_program_bin.log
+        log.SetUniqueLogName(os.Args[0])
 	log.Info("nomal info test ...")
-	log.Debug("nomal debug test ...")
 
 	log.Close()
 }
 
 ```
 
-The output like:
-
-> [2017/11/15 14:35:11 CST] [Test] [INFO] (main.main:15) category Test info test ...     
-> [2017/11/15 14:35:11 CST] [Test] [INFO] (main.main:16) category Test info test message: new test msg     
-> [2017/11/15 14:35:11 CST] [Test] [DEBG] (main.main:17) category Test debug test ...     
-> [2017/11/15 14:35:11 CST] [DEFAULT] [INFO] (main.main:26) nomal info test ...     
-> [2017/11/15 14:35:11 CST] [DEFAULT] [DEBG] (main.main:27) nomal debug test ...    
+ 
 
 
 ## Thanks

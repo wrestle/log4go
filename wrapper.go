@@ -4,14 +4,48 @@ package log4go
 
 import (
 	"errors"
-	"fmt"
+    "fmt"
 	"os"
 	"strings"
+    "io/ioutil"
+    "time"
+    "encoding/json"
+    "path/filepath"
+    "strconv"
 )
 
 var (
 	Global Logger
 )
+
+
+func defaultconf() []byte {
+    localDefaultConfig := []byte(`{
+        "console": {
+            "enable": true,
+            "level": "FINE"
+        },
+        "files": [{
+            "enable": true,
+            "category": "Program",
+            "level": "INFO",
+            "filename":"../log/ProgramLog.log",
+            "rotate": true,
+            "maxsize": "800M",
+            "daily": true,
+            "pattern": "[%D %T] [%C] [%L] (%S) %M"
+        }],
+        "sockets": [{
+            "enable": false,
+            "level": "DEBUG",
+            "category": "TestSocket",
+            "pattern": "[%D %T] [%C] [%L] (%S) %M",
+            "addr": "127.0.0.1:12124",
+            "protocol":"udp"
+        }]
+    }`)
+    return localDefaultConfig
+}
 
 func init() {
 	Global = NewDefaultLogger(FINE)
@@ -279,4 +313,28 @@ func Critical(arg0 interface{}, args ...interface{}) error {
 		return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
 	}
 	return nil
+}
+
+func SetUniqueLogName(program string) {
+    var localDefaultConfig LogConfig 
+    json.Unmarshal(defaultconf(), &localDefaultConfig)
+    var logpath string     = localDefaultConfig.Files[0].Filename
+    var RuntimePath string = filepath.Dir(program)
+    var LogFilename string = filepath.Base(program) + ".log"
+    var LogPath string     = filepath.Join(RuntimePath, filepath.Dir(logpath), LogFilename)
+    var LogDir  string     = filepath.Dir(LogPath)
+    if _, err := os.Stat(LogDir); os.IsNotExist(err){
+        fmt.Sprintf("Log Path is not Exists %s", LogDir)
+        os.Exit(1)
+    }
+    localDefaultConfig.Files[0].Filename = LogPath
+    data, _ := json.Marshal(localDefaultConfig)
+    var timestr string = strconv.Itoa(int(time.Now().Unix()))
+    var tmpconfpath string = "/data/.tmpconf.json." + timestr
+    err := ioutil.WriteFile(tmpconfpath, data, 0644)
+    if err != nil {
+        fmt.Sprintf("Dump json config Fail : %s", err)
+    }
+    LoadConfiguration(tmpconfpath)
+    os.Remove(tmpconfpath)
 }

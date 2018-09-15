@@ -39,6 +39,7 @@ package main
 
 import (
 	log "github.com/jeanphorn/log4go"
+        "os"	
 )
 
 func main() {

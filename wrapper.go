@@ -334,6 +334,7 @@ func SetUniqueLogName(program string) {
     err := ioutil.WriteFile(tmpconfpath, data, 0644)
     if err != nil {
         fmt.Sprintf("Dump json config Fail : %s", err)
+	os.Exit(1)
     }
     LoadConfiguration(tmpconfpath)
     os.Remove(tmpconfpath)

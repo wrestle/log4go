@@ -12,6 +12,8 @@ Two new features are supported, one is Json config style, and the other is defer
 -   **Log to file, support rotate by size or time**
 -   **log to network, support tcp and udp**
 -   **support xml config**
+-   **原项目使用过于繁琐，经过一些小改变，开箱即用，日常使用我的默认设置即可，无需自行调整配置**
+-   **默认支持按天滚动，每个日志文件 800M 上限，超过即滚动**
 
 ---------------------------
 
@@ -43,6 +45,8 @@ import (
 )
 
 func main() {
+        // 感谢 alecthomas 和 jeanphorn 提供的基础项目
+
 	// 默认使用 INFO 级别以上的日志
 	// 日志位置在 当前目录的上级中的 log 里
 	// e.g : 假设执行目录是 /data/code/test_program_dir/bin/exec_program_bin

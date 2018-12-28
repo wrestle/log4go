@@ -46,7 +46,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 	var out strings.Builder
 	//If your log is larger than normal output,
 	//e.g. 1k of each log line, you could Pre-Grow it in there
-	//out.Grow(1024)
+	out.Grow(128)
 	secs := rec.Created.UnixNano() / 1e9
 
 	cache := *formatCache

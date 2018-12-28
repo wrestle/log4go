@@ -92,10 +92,10 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 			case 'M':
 				out.WriteString(rec.Message)
 			case 'C':
-				if len(rec.Category) == 0 {
-					rec.Category = "DEFAULT"
-				}
-				out.WriteString(rec.Category)
+				//if len(rec.Category) == 0 {
+				//	rec.Category = "DEFAULT"
+				//}
+				//out.WriteString(rec.Category)
 			}
 			if len(piece) > 1 {
 				out.Write(piece[1:])

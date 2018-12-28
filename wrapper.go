@@ -23,7 +23,8 @@ func defaultconf() []byte {
     localDefaultConfig := []byte(`{
         "console": {
             "enable": true,
-            "level": "FINE"
+            "level": "FINE",
+            "pattern": "[%D %T] [%L] (%S) %M"
         },
         "files": [{
             "enable": true,
@@ -33,15 +34,7 @@ func defaultconf() []byte {
             "rotate": true,
             "maxsize": "800M",
             "daily": true,
-            "pattern": "[%D %T] [%C] [%L] (%S) %M"
-        }],
-        "sockets": [{
-            "enable": false,
-            "level": "DEBUG",
-            "category": "TestSocket",
-            "pattern": "[%D %T] [%C] [%L] (%S) %M",
-            "addr": "127.0.0.1:12124",
-            "protocol":"udp"
+            "pattern": "[%D %T] [%L] (%S) %M"
         }]
     }`)
     return localDefaultConfig

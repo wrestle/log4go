@@ -14,6 +14,7 @@ Two new features are supported, one is Json config style, and the other is defer
 -   **support xml config**
 -   **原项目使用过于繁琐，经过一些小改变，开箱即用，日常使用我的默认设置即可，无需自行调整配置**
 -   **默认支持按天滚动，每个日志文件 800M 上限，超过即滚动**
+-   **本项目只支持 Go 1.10及以上的版本，因为使用了 strings.Builder**，如果在 pattern.go中将 Builder 替换为 Buffer 则支持其他更低版本
 
 ---------------------------
 

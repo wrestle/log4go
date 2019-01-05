@@ -3,10 +3,10 @@
 package log4go
 
 import (
-	"errors"
+    "errors"
     "fmt"
-	"os"
-	"strings"
+    "os"
+    "strings"
     "io/ioutil"
     "time"
     "encoding/json"
@@ -308,26 +308,74 @@ func Critical(arg0 interface{}, args ...interface{}) error {
 	return nil
 }
 
+func getAbsPath(path string) string {
+    abs, err := filepath.Abs(path)
+    if err != nil {
+        fmt.Println("getAbsPath", err)
+    }
+    return abs
+}
+
+func GetParentDir(path string) string {
+    lastUrl := filepath.Join(filepath.Dir(path), "..")
+    return getAbsPath(lastUrl)
+}
+
+// prompath string is the program you running, abs path
+func getValidLogPath(prompath string) (string, error) {
+    fmt.Println("Program Path", getAbsPath(prompath))
+    filename   := filepath.Base(prompath) + ".log"
+    // First Path Would Choose Parent Dir
+    // >>
+    //   >>bin
+    //     >>prom
+    //   >>log
+    //     >>prom.log
+    var tmpPath string = GetParentDir(prompath)
+    firstChoose := filepath.Join(tmpPath, "log")
+
+    // Second Path Would Choose Current Dir
+    // --
+    //   --prom
+    //   --log
+    //     --prom.log
+    tmpPath = getAbsPath(filepath.Dir(prompath))
+    secondChoose := filepath.Join(tmpPath, "log")
+
+    backupDir  := []string{firstChoose, secondChoose, "/data/log", getAbsPath(".")}
+    fmt.Print("Dir Choose Pool[From Top to Down]:\n    ", strings.Join(backupDir, ",\n    "))
+    fmt.Println("")
+    for _, eachDir := range backupDir {
+        // Check each Dir is Exists
+        if _, err := os.Stat(eachDir); os.IsNotExist(err){
+            fmt.Println("log dir use fail :", err, "try another dir")
+            continue
+        }
+        secondPath := filepath.Join(eachDir, filename)
+        return secondPath, nil
+    }
+    return "", errors.New("no such path")
+}
+
 func SetUniqueLogName(program string) {
     var localDefaultConfig LogConfig 
     json.Unmarshal(defaultconf(), &localDefaultConfig)
-    var logpath string     = localDefaultConfig.Files[0].Filename
-    var RuntimePath string = filepath.Dir(program)
-    var LogFilename string = filepath.Base(program) + ".log"
-    var LogPath string     = filepath.Join(RuntimePath, filepath.Dir(logpath), LogFilename)
-    var LogDir  string     = filepath.Dir(LogPath)
-    if _, err := os.Stat(LogDir); os.IsNotExist(err){
-        fmt.Sprintf("Log Path is not Exists %s", LogDir)
+    LogPath, err := getValidLogPath(program)
+    fmt.Println("Select", LogPath, "as log dir")
+
+    if err != nil {
+        fmt.Println("No Valid Path Can Put The log: %s", err)
         os.Exit(1)
     }
+
     localDefaultConfig.Files[0].Filename = LogPath
     data, _ := json.Marshal(localDefaultConfig)
-    var timestr string = strconv.Itoa(int(time.Now().Unix()))
+    var timestr string     = strconv.Itoa(int(time.Now().Unix()))
     var tmpconfpath string = "/data/.tmpconf.json." + timestr
-    err := ioutil.WriteFile(tmpconfpath, data, 0644)
+    err = ioutil.WriteFile(tmpconfpath, data, 0644)
     if err != nil {
-        fmt.Sprintf("Dump json config Fail : %s", err)
-	os.Exit(1)
+        fmt.Println("Dump json config Fail :", err)
+        os.Exit(1)
     }
     LoadConfiguration(tmpconfpath)
     os.Remove(tmpconfpath)

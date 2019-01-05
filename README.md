@@ -49,10 +49,24 @@ func main() {
         // 感谢 alecthomas 和 jeanphorn 提供的基础项目
 
 	// 默认使用 INFO 级别以上的日志
-	// 日志位置在 当前目录的上级中的 log 里
-	// e.g : 假设执行目录是 /data/code/test_program_dir/bin/exec_program_bin
-	// 那么必须有 /data/code/test_program_dir/log 目录
-	// 日志会打在这文件夹里面，文件名为 /data/code/test_program_dir/log/exec_program_bin.log
+	// 日志位置有四个选择，按顺序自动选择
+	// 1. 
+	// --
+	//   --bin
+	//     --program
+	//   --log
+	//     --program.log
+	// 2. 
+	// --
+	//   --program
+	//   --log
+	//     --program.log
+	// 3.
+	// /data/log/program.log
+	// 4.
+	// ./program.log
+	
+        // program.log即为日志文件名
         log.SetUniqueLogName(os.Args[0])
 	log.Info("nomal info test ...")
 

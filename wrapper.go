@@ -360,7 +360,7 @@ func getValidLogPath(prompath string) (string, error) {
 // If error exists, it must be bad thing happend
 // level FINE, DEBUG, INFO, ...
 func SetUniqueLogName(program string, level string) (string, error) {
-    var localDefaultConfig LogConfig-
+    var localDefaultConfig LogConfig
     json.Unmarshal(defaultconf(), &localDefaultConfig)
     LogPath, err := getValidLogPath(program)
     fmt.Println("Select", LogPath, "as log dir")

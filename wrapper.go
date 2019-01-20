@@ -357,26 +357,33 @@ func getValidLogPath(prompath string) (string, error) {
     return "", errors.New("no such path")
 }
 
-func SetUniqueLogName(program string) {
-    var localDefaultConfig LogConfig 
+// If error exists, it must be bad thing happend
+// level FINE, DEBUG, INFO, ...
+func SetUniqueLogName(program string, level string) (string, error) {
+    var localDefaultConfig LogConfig-
     json.Unmarshal(defaultconf(), &localDefaultConfig)
     LogPath, err := getValidLogPath(program)
     fmt.Println("Select", LogPath, "as log dir")
 
     if err != nil {
-        fmt.Println("No Valid Path Can Put The log: %s", err)
-        os.Exit(1)
+        emsg := fmt.Sprint("No Valid Path Can Put The log: %s", err)
+        fmt.Println(emsg)
+        return "", errors.New(emsg)
     }
 
     localDefaultConfig.Files[0].Filename = LogPath
+    localDefaultConfig.Files[0].Level    = level
+    localDefaultConfig.Console.Level  = level
     data, _ := json.Marshal(localDefaultConfig)
-    var timestr string     = strconv.Itoa(int(time.Now().Unix()))
+    var timestr     string = strconv.Itoa(int(time.Now().Unix()))
     var tmpconfpath string = "/data/.tmpconf.json." + timestr
     err = ioutil.WriteFile(tmpconfpath, data, 0644)
     if err != nil {
-        fmt.Println("Dump json config Fail :", err)
-        os.Exit(1)
+        emsg := fmt.Sprint("Dump json config Fail :", err)
+        fmt.Println(emsg)
+        return "", errors.New(emsg)
     }
     LoadConfiguration(tmpconfpath)
     os.Remove(tmpconfpath)
+    return program, nil
 }

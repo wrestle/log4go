@@ -41,7 +41,7 @@ Code example:
 package main
 
 import (
-	log "github.com/jeanphorn/log4go"
+	log "github.com/wrestle/log4go"
         "os"	
 )
 

@@ -47,6 +47,10 @@ func (w *FileLogWriter) LogWrite(rec *LogRecord) {
 
 func (w *FileLogWriter) Close() {
 	close(w.rec)
+    for len(w.rec) > 0 {
+        time.Sleep(100 * time.Millisecond)
+        continue
+    }
 	w.file.Sync()
 }
 

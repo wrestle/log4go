@@ -3,24 +3,23 @@
 package log4go
 
 import (
-    "errors"
-    "fmt"
-    "os"
-    "strings"
-    "io/ioutil"
-    "time"
-    "encoding/json"
-    "path/filepath"
-    "strconv"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
 	Global Logger
 )
 
-
 func defaultconf() []byte {
-    localDefaultConfig := []byte(`{
+	localDefaultConfig := []byte(`{
         "console": {
             "enable": true,
             "level": "FINE",
@@ -37,7 +36,7 @@ func defaultconf() []byte {
             "pattern": "[%D %T] [%L] (%S) %M"
         }]
     }`)
-    return localDefaultConfig
+	return localDefaultConfig
 }
 
 func init() {
@@ -309,81 +308,85 @@ func Critical(arg0 interface{}, args ...interface{}) error {
 }
 
 func getAbsPath(path string) string {
-    abs, err := filepath.Abs(path)
-    if err != nil {
-        fmt.Println("getAbsPath", err)
-    }
-    return abs
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		fmt.Println("getAbsPath", err)
+	}
+	return abs
 }
 
 func GetParentDir(path string) string {
-    lastUrl := filepath.Join(filepath.Dir(path), "..")
-    return getAbsPath(lastUrl)
+	lastUrl := filepath.Join(filepath.Dir(path), "..")
+	return getAbsPath(lastUrl)
 }
 
 // prompath string is the program you running, abs path
 func getValidLogPath(prompath string) (string, error) {
-    fmt.Println("Program Path", getAbsPath(prompath))
-    filename   := filepath.Base(prompath) + ".log"
-    // First Path Would Choose Parent Dir
-    // >>
-    //   >>bin
-    //     >>prom
-    //   >>log
-    //     >>prom.log
-    var tmpPath string = GetParentDir(prompath)
-    firstChoose := filepath.Join(tmpPath, "log")
+	fmt.Println("Program Path", getAbsPath(prompath))
+	filename := filepath.Base(prompath) + ".log"
+	// First Path Would Choose Parent Dir
+	// >>
+	//   >>bin
+	//     >>prom
+	//   >>log
+	//     >>prom.log
+	var tmpPath string = GetParentDir(prompath)
+	firstChoose := filepath.Join(tmpPath, "log")
 
-    // Second Path Would Choose Current Dir
-    // --
-    //   --prom
-    //   --log
-    //     --prom.log
-    tmpPath = getAbsPath(filepath.Dir(prompath))
-    secondChoose := filepath.Join(tmpPath, "log")
+	// Second Path Would Choose Current Dir
+	// --
+	//   --prom
+	//   --log
+	//     --prom.log
+	tmpPath = getAbsPath(filepath.Dir(prompath))
+	secondChoose := filepath.Join(tmpPath, "log")
 
-    backupDir  := []string{firstChoose, secondChoose, "/data/log", getAbsPath(".")}
-    fmt.Print("Dir Choose Pool[From Top to Down]:\n    ", strings.Join(backupDir, ",\n    "))
-    fmt.Println("")
-    for _, eachDir := range backupDir {
-        // Check each Dir is Exists
-        if _, err := os.Stat(eachDir); os.IsNotExist(err){
-            fmt.Println("log dir use fail :", err, "try another dir")
-            continue
-        }
-        secondPath := filepath.Join(eachDir, filename)
-        return secondPath, nil
-    }
-    return "", errors.New("no such path")
+	backupDir := []string{firstChoose, secondChoose, "/data/log", getAbsPath(".")}
+	fmt.Print("Dir Choose Pool[From Top to Down]:\n    ", strings.Join(backupDir, ",\n    "))
+	fmt.Println("")
+	for _, eachDir := range backupDir {
+		// Check each Dir is Exists
+		if _, err := os.Stat(eachDir); os.IsNotExist(err) {
+			fmt.Println("log dir use fail :", err, "try another dir")
+			continue
+		}
+		secondPath := filepath.Join(eachDir, filename)
+		return secondPath, nil
+	}
+	return "", errors.New("no such path")
 }
 
 // If error exists, it must be bad thing happend
 // level FINE, DEBUG, INFO, ...
 func SetUniqueLogName(program string, level string) (string, error) {
-    var localDefaultConfig LogConfig
-    json.Unmarshal(defaultconf(), &localDefaultConfig)
-    LogPath, err := getValidLogPath(program)
-    fmt.Println("Select", LogPath, "as log dir")
+	var localDefaultConfig LogConfig
+	json.Unmarshal(defaultconf(), &localDefaultConfig)
+	LogPath, err := getValidLogPath(program)
+	fmt.Println("Select", LogPath, "as log dir")
 
-    if err != nil {
-        emsg := fmt.Sprint("No Valid Path Can Put The log: %s", err)
-        fmt.Println(emsg)
-        return "", errors.New(emsg)
-    }
+	if err != nil {
+		emsg := fmt.Sprint("No Valid Path Can Put The log: %s", err)
+		fmt.Println(emsg)
+		return "", errors.New(emsg)
+	}
 
-    localDefaultConfig.Files[0].Filename = LogPath
-    localDefaultConfig.Files[0].Level    = level
-    localDefaultConfig.Console.Level  = level
-    data, _ := json.Marshal(localDefaultConfig)
-    var timestr     string = strconv.Itoa(int(time.Now().Unix()))
-    var tmpconfpath string = "/data/.tmpconf.json." + timestr
-    err = ioutil.WriteFile(tmpconfpath, data, 0644)
-    if err != nil {
-        emsg := fmt.Sprint("Dump json config Fail :", err)
-        fmt.Println(emsg)
-        return "", errors.New(emsg)
+	localDefaultConfig.Files[0].Filename = LogPath
+	localDefaultConfig.Files[0].Level = level
+	localDefaultConfig.Console.Level = level
+    if level != "DEBUG" || level != "FINE" {
+        localDefaultConfig.Console.Enable = false
+        fmt.Println("Log level is not FINE OR DEBUG, will not print log to the screen")
     }
-    LoadConfiguration(tmpconfpath)
-    os.Remove(tmpconfpath)
-    return program, nil
+	data, _ := json.Marshal(localDefaultConfig)
+	var timestr string = strconv.Itoa(int(time.Now().Unix()))
+	var tmpconfpath string = "/data/.tmpconf.json." + timestr
+	err = ioutil.WriteFile(tmpconfpath, data, 0644)
+	if err != nil {
+		emsg := fmt.Sprint("Dump json config Fail :", err)
+		fmt.Println(emsg)
+		return "", errors.New(emsg)
+	}
+	LoadConfiguration(tmpconfpath)
+	os.Remove(tmpconfpath)
+	return program, nil
 }

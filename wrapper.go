@@ -16,12 +16,14 @@ import (
 
 var (
 	Global Logger
+    DEFAULT_LOGGER_NAME string = "Program"
 )
 
 func defaultconf() []byte {
 	localDefaultConfig := []byte(`{
         "console": {
             "enable": true,
+            "category": "Program",
             "level": "FINE",
             "pattern": "[%D %T] [%L] (%S) %M"
         },
@@ -55,6 +57,10 @@ func LoadConfiguration(filename string, types ...string) {
 // Wrapper for (*Logger).AddFilter
 func AddFilter(name string, lvl Level, writer LogWriter) {
 	Global.AddFilter(name, lvl, writer)
+}
+
+func ChangeFilterLevel(name string, lvl string) {
+    Global.ChangeFilterLevel(name, L4gGetLogLevel(lvl))
 }
 
 // Wrapper for (*Logger).Close (closes and removes all logwriters)
@@ -373,7 +379,7 @@ func SetUniqueLogName(program string, level string) (string, error) {
 	localDefaultConfig.Files[0].Filename = LogPath
 	localDefaultConfig.Files[0].Level = level
 	localDefaultConfig.Console.Level = level
-    if level != "DEBUG" || level != "FINE" {
+    if level != "DEBUG" && level != "FINE" {
         localDefaultConfig.Console.Enable = false
         fmt.Println("Log level is not FINE OR DEBUG, will not print log to the screen")
     }

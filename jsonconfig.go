@@ -107,6 +107,10 @@ func (log Logger) LoadJsonConfiguration(filename string) {
 
 }
 
+func L4gGetLogLevel(l string) Level {
+    return getLogLevel(l)
+}
+
 func getLogLevel(l string) Level {
 	var lvl Level
 	switch l {

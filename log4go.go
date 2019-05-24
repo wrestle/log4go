@@ -130,6 +130,10 @@ type Filter struct {
 	Category string
 }
 
+func (f *Filter) SetLevel(l Level) {
+    f.Level = l
+}
+
 // A Logger represents a collection of Filters through which log messages are
 // written.
 type Logger map[string]*Filter
@@ -171,6 +175,11 @@ func (log Logger) Close() {
 		filt.Close()
 		delete(log, name)
 	}
+}
+
+func (log Logger) ChangeFilterLevel(name string, lvl Level) Logger {
+    log[name].Level = lvl
+    return log
 }
 
 // Add a new LogWriter to the Logger which will only log messages at lvl or

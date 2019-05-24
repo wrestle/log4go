@@ -68,9 +68,10 @@ func main() {
 	
         // program.log即为日志文件名
 	logLevel = "INFO"
-        log.SetUniqueLogName(os.Args[0], logLevel)
+    log.SetUniqueLogName(os.Args[0], logLevel)
 	log.Info("nomal info test ...")
-
+	log.ChangeFilterLevel(log.DEFAULT_LOGGER_NAME, "DEBUG")
+	log.Debug("nomal info test 2 ...")
 	log.Close()
 }
 
